@@ -241,7 +241,7 @@ function toggleCommand(id){
     audio.play();
 }
 
-function startTimer(duration, display, internalTicker, displayMinutes = true) {
+function startTimer(duration, display, type, displayMinutes = true) {
     var start = Date.now(),
         diff,
         minutes,
@@ -252,11 +252,17 @@ function startTimer(duration, display, internalTicker, displayMinutes = true) {
         diff = duration - (((Date.now() - start) / 1000) | 0);
 
         if (diff == 2){
-            ticker.start();
+            if (type = "pause"){
+                ticker.start();
+            }
         }
 
         if (diff == 0){
-            clearInterval(internalTicker);
+            if (type = "duration"){
+                clearInterval(countdownTicker);
+            } else {
+                clearInterval(pauseCountdownTicker);
+            }
         }
 
         if (displayMinutes){
@@ -281,7 +287,11 @@ function startTimer(duration, display, internalTicker, displayMinutes = true) {
     };
     // we don't want to wait a full second before the timer starts
     timer();
-    internalTicker = setInterval(timer, 1000);
+    if (type = "duration"){
+        countdownTicker = setInterval(timer, 1000);
+    } else {
+        pauseCountdownTicker = setInterval(timer, 1000);
+    }
 }
 
 /**
