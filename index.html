@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>sixrun</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<link rel="stylesheet" type="text/css" href="css/styles.css" />
+</head>
+<body>
+<div class="container">
+	<img src="sixrun.png" alt="Sixrun_Logo" style="padding-top: 1em; padding-bottom: 1em;"/>
+	<br />
+    <small> eine simple WebApp für Lauftraining </small>
+    <br /><br />
+    <div id="divSettings">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="trainingInterval">Interval zwischen den Befehlen</label>
+                <select class="form-control" id="trainingInterval">
+                        <option value="2000">2 Sekunden</option>
+                        <option value="3000">3 Sekunden</option>
+                        <option value="4000">4 Sekunden</option>
+                        <option value="5000">5 Sekunden</option>
+                        <option value="6000">6 Sekunden</option>
+                </select>            
+            </div>
+            <div class="col-md-6">
+                <label for="trainingDuration">Dauer des Trainings</label>
+                <select class="form-control" id="trainingDuration">
+                    <option value="300000">5 Minuten</option>
+                    <option value="600000">10 Minuten</option>
+                    <option value="900000">15 Minuten</option>
+                    <option value="1200000">20 Minuten</option>
+                    <option value="1500000">25 Minuten</option>
+                    <option value="1800000">30 Minuten</option>
+                </select>            
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-6">
+                <label for="pauseInterval">Eine Pause alle...</label>
+                <select class="form-control" id="pauseInterval">
+                    <option value="30000">30 Sekunden</option>
+                    <option value="60000">60 Sekunden</option>
+                    <option value="90000">90 Sekunden</option>
+                </select>            
+            </div>
+            <div class="col-md-6">
+                <label for="pauseDuration">Dauer der Pause</label>
+                <select class="form-control" id="pauseDuration">
+                    <option value="10000">10 Sekunden</option>
+                    <option value="15000">15 Sekunden</option>
+                    <option value="20000">20 Sekunden</option>
+                    <option value="25000">25 Sekunden</option>
+                    <option value="30000">30 Sekunden</option>
+                </select>            
+            </div>
+        </div>
+        <br /><br />
+        <button type="button" id="btnStart" class="btn btn-success" style="width: 100%;" >Start</button>
+    </div>
+    <div id="divTraining" style="display: none;">
+            <b id="start" style="font-size: 5em; display: none;" >Start</b>
+            <b id="pause" style="font-size: 5em; display: none;" >
+                Pause
+                <div style="font-size: 0.2em;"><span id="pauseTime"></span> Sekunden verbleiben...</div>
+            </b>
+            <b id="command0" style="font-size: 5em; display: none;">Vorne Rechts</b>
+            <b id="command1" style="font-size: 5em; display: none;">Vorne Links</b>
+            <b id="command2" style="font-size: 5em; display: none;">Mitte Rechts</b>
+            <b id="command4" style="font-size: 5em; display: none;">Hinten Rechts</b>
+            <b id="command3" style="font-size: 5em; display: none;">Mitte Links</b>
+            <b id="command5" style="font-size: 5em; display: none;">Hinten Links</b>
+            <b id="stop" style="font-size: 5em; display: none;">Stop</b>
+    <br /><br />
+    <audio id="startAudio">
+            <source src='audio/start.mp3' type="audio/mp3" />
+    </audio>
+    <audio id="pauseAudio">
+            <source src='audio/pause.mp3' type="audio/mp3" />
+    </audio>
+    <audio id="vornerechts">
+            <source src='audio/vornerechts.mp3' type="audio/mp3" />
+    </audio>
+    <audio id="vornelinks" >
+            <source src='audio/vornelinks.mp3' type="audio/mp3" />
+    </audio>
+    <audio id="mitterechts" >
+            <source src='audio/mitterechts.mp3' type="audio/mp3" />
+    </audio>
+    <audio id="mittelinks" >
+            <source src='audio/mittelinks.mp3' type="audio/mp3" />
+    </audio>
+    <audio id="hintenrechts" >
+            <source src='audio/hintenrechts.mp3' type="audio/mp3" />
+    </audio>
+    <audio id="hintenlinks" >
+            <source src='audio/hintenlinks.mp3' type="audio/mp3" />
+    </audio>
+    <audio id="stopAudio">
+            <source src='audio/stop.mp3' type="audio/mp3" />
+    </audio>
+    
+    <button type="button" id="btnStop" class="btn btn-danger" style="width: 100%;">
+        Manueller Stop
+        <div><span id="time"></span> Minuten verbleiben...</div>
+    </button>
+    </div>
+    <br />
+    <footer><small>von <a href="https://github.com/h-mulahmetovic">Hamza Mulahmetovic</a><br />&copy; Copyright 2020 RehalWeb</small></footer>
+</div>
+</body>
+<script>
+var audio = null;
+var ticker = null;
+var pauseTicker = null;
+var endTimeout = null;
+var countdownTicker = null;
+var pauseCountdownTicker = null;
+
+$("#btnStart").click(function(){
+    var trainingInterval = parseInt($("#trainingInterval").val());
+    var trainingDuration = parseInt($("#trainingDuration").val());
+    var pauseInterval = parseInt($("#pauseInterval").val());   
+
+    var trainingDurationTimer = trainingDuration/1000,
+        display = document.querySelector('#time');
+    startTimer(trainingDurationTimer, display, countdownTicker);
+
+
+    $("#divSettings").hide();
+    $("#divTraining").show();
+
+    toggleCommand("start");
+
+    ticker = new AdjustingInterval(Command, trainingInterval);
+    ticker.start();
+
+    pauseTicker = new AdjustingInterval(Pause, pauseInterval);
+    pauseTicker.start();
+    
+
+    endTimeout = setTimeout(
+    function() {
+      $("#btnStop").click();
+    }, trainingDuration);
+
+});
+
+
+$("#btnStop").click(function(){
+    var trainingInterval = parseInt($("#trainingInterval").val());
+
+    ticker.stop();
+    pauseTicker.stop();
+    clearTimeout(endTimeout);
+    clearInterval(countdownTicker)
+    clearInterval(pauseCountdownTicker);
+
+    toggleCommand("stop"); 
+
+    setTimeout(function () {
+        $("#divSettings").show();
+        $("#divTraining").hide();
+    }, trainingInterval);
+    
+});
+
+
+function Command(){
+    toggleCommand(getRandomInt(0, 5));
+}
+
+
+function Pause(){
+    ticker.stop();
+
+    toggleCommand("pause");
+
+    var pauseDuration = parseInt($("#pauseDuration").val());
+    var pauseDurationTimer = pauseDuration/1000,
+        display = document.querySelector('#pauseTime');
+    startTimer(pauseDurationTimer, display, pauseCountdownTicker, false);
+}
+
+
+function toggleCommand(id){
+    $("#start").hide();
+    $("#pause").hide();
+    $("#command0").hide();
+    $("#command1").hide();
+    $("#command2").hide();
+    $("#command3").hide();
+    $("#command4").hide();
+    $("#command5").hide();    
+    $("#stop").hide();
+
+    switch (id){
+        case "start":
+            $("#start").show();
+            audio = document.getElementById("startAudio");
+            break;
+        case "pause":
+            $("#pause").show();
+            audio = document.getElementById("pauseAudio");
+            break;
+        case 0:
+            $("#command0").show();
+            audio = document.getElementById("vornerechts");
+            break;
+        case 1:
+            $("#command1").show();
+            audio = document.getElementById("vornelinks");
+            break;
+        case 2:
+            $("#command2").show();
+            audio = document.getElementById("mitterechts");
+            break;
+        case 3:
+            $("#command3").show();
+            audio = document.getElementById("mittelinks");
+            break;
+        case 4:
+            $("#command4").show();
+            audio = document.getElementById("hintenrechts");
+            break;
+        case 5:
+            $("#command5").show();
+            audio = document.getElementById("hintenlinks");
+            break;
+        case "stop":
+            $("#stop").show();
+            audio = document.getElementById("stopAudio");
+            break;
+    }
+
+    audio.play();
+}
+
+function startTimer(duration, display, internalTicker, displayMinutes = true) {
+    var start = Date.now(),
+        diff,
+        minutes,
+        seconds;
+    function timer() {
+        // get the number of seconds that have elapsed since 
+        // startTimer() was called
+        diff = duration - (((Date.now() - start) / 1000) | 0);
+
+        if (diff == 2){
+            ticker.start();
+        }
+
+        if (diff == 0){
+            clearInterval(internalTicker);
+        }
+
+        if (displayMinutes){
+            // does the same job as parseInt truncates the float
+            minutes = (diff / 60) | 0;
+            seconds = (diff % 60) | 0;
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            display.textContent = minutes + ":" + seconds; 
+
+        } else { 
+            display.textContent = diff; 
+        }
+
+        if (diff <= 0) {
+            // add one second so that the count down starts at the full duration
+            // example 05:00 not 04:59
+            start = Date.now() + 1000;
+        }
+    };
+    // we don't want to wait a full second before the timer starts
+    timer();
+    internalTicker = setInterval(timer, 1000);
+}
+
+/**
+ * Returns a random integer between min (inclusive) and max (inclusive).
+ * The value is no lower than min (or the next integer greater than min
+ * if min isn't an integer) and no greater than max (or the next integer
+ * lower than max if max isn't an integer).
+ * Using Math.round() will give you a non-uniform distribution!
+ */
+ function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+
+/**
+ * Self-adjusting interval to account for drifting
+ * 
+ * @param {function} workFunc  Callback containing the work to be done
+ *                             for each interval
+ * @param {int}      interval  Interval speed (in milliseconds) - This 
+ * @param {function} errorFunc (Optional) Callback to run if the drift
+ *                             exceeds interval
+ */
+ function AdjustingInterval(workFunc, interval, errorFunc) {
+    var that = this;
+    var expected, timeout;
+    this.interval = interval;
+
+    this.start = function() {
+        expected = Date.now() + this.interval;
+        timeout = setTimeout(step, this.interval);
+    }
+
+    this.stop = function() {
+        clearTimeout(timeout);
+    }
+
+    function step() {
+        var drift = Date.now() - expected;
+        if (drift > that.interval) {
+            // You could have some default stuff here too...
+            if (errorFunc) errorFunc();
+        }
+        workFunc();
+        expected += that.interval;
+        timeout = setTimeout(step, Math.max(0, that.interval-drift));
+    }
+}
+</script>
+</html>

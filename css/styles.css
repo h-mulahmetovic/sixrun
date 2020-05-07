@@ -1,0 +1,11 @@
+body {
+    padding: 5%;
+    font-family: sans-serif;
+    color: white;
+    background-color: black;
+}
+
+.settings, .training {
+    margin-top: 10px;
+    margin-bottom: 10px;   
+}
